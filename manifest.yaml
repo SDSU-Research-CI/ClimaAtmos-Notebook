@@ -56,7 +56,7 @@ spec:
       volumes:
       - name: jovyan-home
         persistentVolumeClaim:
-          claimName: volume-heli  # Ensure this PVC exists or create one before applying
+          claimName: volume-{insert-volume-name}  # Ensure this PVC exists or create one before applying
       - name: dshm
         emptyDir:
           medium: Memory
