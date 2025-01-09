@@ -1,0 +1,9 @@
+[extras]
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+
+[preferences.MPIPreferences]
+_format = "1.0"
+abi = "OpenMPI"
+binary = "system"
+libmpi = "/opt/conda/lib/libmpi.so"
+mpiexec = "/opt/conda/bin/mpiexec"

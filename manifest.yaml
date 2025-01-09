@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: julia-climaatmos-gpu-deployment2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyterpod
+  template:
+    metadata:
+      labels:
+        app: jupyterpod
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nautilus.io/csu-tide
+                operator: Exists
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-L40
+                # Uncomment the line below if NVIDIA-A100-80GB-PCIe is to be included
+                # - NVIDIA-A100-80GB-PCIe
+      restartPolicy: Always
+      initContainers:
+      - name: take-data-dir-ownership
+        image: alpine:3
+        command: ["/bin/sh", "-c", "chown 0:100 /home/jovyan && chmod 775 /home/jovyan"]
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: jovyan-home
+      containers:
+      - name: gpu-container
+        image: henrylisdsu/julia-climaatmos-notebook:v1.10.5.3
+        command: ["sleep", "infinity"]
+        resources:
+          limits:
+            cpu: "12"
+            memory: "480Gi"
+            nvidia.com/gpu: "1"
+            ephemeral-storage: "100Gi"
+          requests:
+            cpu: "12"
+            memory: "400Gi"
+            nvidia.com/gpu: "1"
+            ephemeral-storage: "100Gi"
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: jovyan-home
+        - mountPath: /dev/shm
+          name: dshm
+      volumes:
+      - name: jovyan-home
+        persistentVolumeClaim:
+          claimName: volume-heli  # Ensure this PVC exists or create one before applying
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      tolerations:
+      - key: nautilus.io/csu-tide
+        operator: Exists
+        effect: NoSchedule
+      - key: nautilus.io/sdsu-fix
+        operator: Exists
+        effect: NoSchedule
